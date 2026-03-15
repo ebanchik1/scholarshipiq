@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 const SCHOOLS = [
   // SOURCE: 2025 ABA Standard 509 Required Disclosures (Dec 2025 release)
@@ -1106,6 +1107,7 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
         )}
 
       </div>
+      <Analytics />
     </div>
   );
 }
