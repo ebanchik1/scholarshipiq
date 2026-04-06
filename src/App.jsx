@@ -990,18 +990,25 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
                                 )}
                               </div>
                               {schoolData && (
-                                <button onClick={(e)=>{
-                                  e.stopPropagation();
-                                  if(!selected.find(s=>s.name===schoolData.name)) addSchool(schoolData);
-                                  setActiveTab("estimator");
-                                }} style={{
-                                  padding:"5px 12px",borderRadius:8,border:"1.5px solid #e0dbd2",
-                                  background:"#faf9f7",color:"#444",cursor:"pointer",fontSize:12,fontWeight:600,
-                                  whiteSpace:"nowrap",transition:"all 0.15s",flexShrink:0
-                                }}
-                                  onMouseOver={e=>{e.target.style.background="#e8e4dc";e.target.style.borderColor="#ccc";}}
-                                  onMouseOut={e=>{e.target.style.background="#faf9f7";e.target.style.borderColor="#e0dbd2";}}
-                                >+ Add to list</button>
+                                selected.find(s=>s.name===schoolData.name) ? (
+                                  <span style={{
+                                    padding:"5px 12px",borderRadius:8,border:"1.5px solid #a5d6a7",
+                                    background:"#e6f4ea",color:"#2e7d32",fontSize:12,fontWeight:600,
+                                    whiteSpace:"nowrap",flexShrink:0
+                                  }}>✓ Added</span>
+                                ) : (
+                                  <button onClick={(e)=>{
+                                    e.stopPropagation();
+                                    addSchool(schoolData);
+                                  }} style={{
+                                    padding:"5px 12px",borderRadius:8,border:"1.5px solid #e0dbd2",
+                                    background:"#faf9f7",color:"#444",cursor:"pointer",fontSize:12,fontWeight:600,
+                                    whiteSpace:"nowrap",transition:"all 0.15s",flexShrink:0
+                                  }}
+                                    onMouseOver={e=>{e.target.style.background="#e8e4dc";e.target.style.borderColor="#ccc";}}
+                                    onMouseOut={e=>{e.target.style.background="#faf9f7";e.target.style.borderColor="#e0dbd2";}}
+                                  >+ Add to list</button>
+                                )
                               )}
                             </div>
                             <div className="rec-detail-grid">
