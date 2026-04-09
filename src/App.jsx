@@ -1,121 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 
-const SCHOOLS = [
-  // SOURCE: 2025 ABA Standard 509 Required Disclosures (Dec 2025 release)
-  // LSD.law, ILRG 2026, Spivey 2025 median tracker
-  // Grant/scholarship data: ABA 509 scholarship disclosures + school websites
-  // wl_rate: estimated from LSD.law historical cycle data by tier
-  // OOS/private tuition used throughout
+import SCHOOLS from "./schools.js";
 
-  // ─── T14 ──────────────────────────────────────────────────────────────────
-  { name:"Yale Law School",                    usNews:1,  tier:"T14", city:"New Haven", state:"CT",  median_lsat:174,p25_lsat:171,p75_lsat:177,median_gpa:3.96,p25_gpa:3.90,p75_gpa:4.00, tuition:78600, pct_grant:75, pct_half:45, pct_full:20, med_grant:25000, p25_grant:0,     p75_grant:55000, class_size:220,  yield:0.77, seats_pct:0.04, accept_rate:0.0406, wl_rate:0.05 },
-  { name:"Stanford Law School",                usNews:2,  tier:"T14", city:"Stanford", state:"CA",  median_lsat:173,p25_lsat:169,p75_lsat:175,median_gpa:3.92,p25_gpa:3.78,p75_gpa:4.00, tuition:79326, pct_grant:72, pct_half:42, pct_full:18, med_grant:22000, p25_grant:0,     p75_grant:52000, class_size:185,  yield:0.70, seats_pct:0.03, accept_rate:0.061,  wl_rate:0.05 },
-  { name:"Harvard Law School",                 usNews:3,  tier:"T14", city:"Cambridge", state:"MA",  median_lsat:174,p25_lsat:171,p75_lsat:176,median_gpa:3.96,p25_gpa:3.89,p75_gpa:4.00, tuition:77400, pct_grant:60, pct_half:32, pct_full:12, med_grant:18000, p25_grant:0,     p75_grant:45000, class_size:579,  yield:0.59, seats_pct:0.03, accept_rate:0.092,  wl_rate:0.06 },
-  { name:"University of Chicago Law",          usNews:4,  tier:"T14", city:"Chicago", state:"IL",  median_lsat:174,p25_lsat:171,p75_lsat:176,median_gpa:3.97,p25_gpa:3.87,p75_gpa:4.00, tuition:83316, pct_grant:68, pct_half:38, pct_full:15, med_grant:30000, p25_grant:0,     p75_grant:65000, class_size:203,  yield:0.30, seats_pct:0.23, accept_rate:0.0974, wl_rate:0.08 },
-  { name:"Penn Carey Law",                     usNews:5,  tier:"T14", city:"Philadelphia", state:"PA",  median_lsat:173,p25_lsat:167,p75_lsat:174,median_gpa:3.95,p25_gpa:3.77,p75_gpa:4.00, tuition:76878, pct_grant:70, pct_half:40, pct_full:16, med_grant:28000, p25_grant:0,     p75_grant:60000, class_size:266,  yield:0.40, seats_pct:0.10, accept_rate:0.106,  wl_rate:0.09 },
-  { name:"UVA School of Law",                  usNews:6,  tier:"T14", city:"Charlottesville", state:"VA",  median_lsat:173,p25_lsat:168,p75_lsat:175,median_gpa:3.99,p25_gpa:3.83,p75_gpa:4.04, tuition:73400, pct_grant:65, pct_half:36, pct_full:14, med_grant:22000, p25_grant:0,     p75_grant:52000, class_size:305,  yield:0.43, seats_pct:0.08, accept_rate:0.0966, wl_rate:0.09 },
-  { name:"Columbia Law School",                usNews:7,  tier:"T14", city:"New York", state:"NY",  median_lsat:173,p25_lsat:169,p75_lsat:175,median_gpa:3.92,p25_gpa:3.85,p75_gpa:3.98, tuition:84882, pct_grant:55, pct_half:28, pct_full:10, med_grant:18000, p25_grant:0,     p75_grant:42000, class_size:443,  yield:0.47, seats_pct:0.05, accept_rate:0.118,  wl_rate:0.07 },
-  { name:"NYU School of Law",                  usNews:8,  tier:"T14", city:"New York", state:"NY",  median_lsat:172,p25_lsat:169,p75_lsat:175,median_gpa:3.92,p25_gpa:3.83,p75_gpa:3.97, tuition:81000, pct_grant:58, pct_half:30, pct_full:11, med_grant:20000, p25_grant:0,     p75_grant:48000, class_size:450,  yield:0.44, seats_pct:0.04, accept_rate:0.156,  wl_rate:0.07 },
-  { name:"UC Berkeley School of Law",          usNews:9,  tier:"T14", city:"Berkeley", state:"CA",  median_lsat:170,p25_lsat:167,p75_lsat:172,median_gpa:3.92,p25_gpa:3.84,p75_gpa:3.99, tuition:56000, pct_grant:62, pct_half:34, pct_full:13, med_grant:20000, p25_grant:0,     p75_grant:48000, class_size:374,  yield:0.39, seats_pct:0.06, accept_rate:0.128,  wl_rate:0.08 },
-  { name:"Duke University School of Law",      usNews:10, tier:"T14", city:"Durham", state:"NC",  median_lsat:171,p25_lsat:169,p75_lsat:172,median_gpa:3.91,p25_gpa:3.83,p75_gpa:3.96, tuition:79800, pct_grant:72, pct_half:42, pct_full:18, med_grant:28000, p25_grant:5000,  p75_grant:58000, class_size:227,  yield:0.38, seats_pct:0.09, accept_rate:0.098,  wl_rate:0.08 },
-  { name:"Northwestern Pritzker Law",          usNews:11, tier:"T14", city:"Chicago", state:"IL",  median_lsat:173,p25_lsat:167,p75_lsat:175,median_gpa:3.96,p25_gpa:3.76,p75_gpa:4.00, tuition:79380, pct_grant:68, pct_half:38, pct_full:15, med_grant:26000, p25_grant:0,     p75_grant:58000, class_size:253,  yield:0.37, seats_pct:0.08, accept_rate:0.148,  wl_rate:0.09 },
-  { name:"Cornell Law School",                 usNews:12, tier:"T14", city:"Ithaca", state:"NY",  median_lsat:173,p25_lsat:168,p75_lsat:175,median_gpa:3.92,p25_gpa:3.75,p75_gpa:3.97, tuition:78650, pct_grant:70, pct_half:40, pct_full:16, med_grant:25000, p25_grant:0,     p75_grant:55000, class_size:217,  yield:0.25, seats_pct:0.12, accept_rate:0.1819, wl_rate:0.12 },
-  { name:"University of Michigan Law",         usNews:13, tier:"T14", city:"Ann Arbor", state:"MI",  median_lsat:171,p25_lsat:168,p75_lsat:173,median_gpa:3.88,p25_gpa:3.74,p75_gpa:3.95, tuition:67000, pct_grant:68, pct_half:38, pct_full:15, med_grant:22000, p25_grant:0,     p75_grant:48000, class_size:343,  yield:0.43, seats_pct:0.06, accept_rate:0.130,  wl_rate:0.10 },
-  { name:"Georgetown Law",                     usNews:14, tier:"T14", city:"Washington", state:"DC",  median_lsat:171,p25_lsat:165,p75_lsat:173,median_gpa:3.93,p25_gpa:3.72,p75_gpa:3.97, tuition:77526, pct_grant:55, pct_half:28, pct_full:10, med_grant:18000, p25_grant:0,     p75_grant:42000, class_size:672,  yield:0.36, seats_pct:0.04, accept_rate:0.157,  wl_rate:0.08 },
-
-  // ─── T25 ──────────────────────────────────────────────────────────────────
-  { name:"Vanderbilt Law School",              usNews:15, tier:"T25", city:"Nashville", state:"TN",  median_lsat:170,p25_lsat:167,p75_lsat:171,median_gpa:3.91,p25_gpa:3.77,p75_gpa:3.97, tuition:75732, pct_grant:78, pct_half:50, pct_full:25, med_grant:38000, p25_grant:10000, p75_grant:68000, class_size:173,  yield:0.30, seats_pct:0.10, accept_rate:0.128,  wl_rate:0.10 },
-  { name:"UCLA School of Law",                 usNews:16, tier:"T25", city:"Los Angeles", state:"CA",  median_lsat:171,p25_lsat:166,p75_lsat:172,median_gpa:3.95,p25_gpa:3.73,p75_gpa:4.00, tuition:53000, pct_grant:62, pct_half:34, pct_full:13, med_grant:20000, p25_grant:0,     p75_grant:48000, class_size:328,  yield:0.31, seats_pct:0.06, accept_rate:0.1205, wl_rate:0.10 },
-  { name:"University of Texas Law",            usNews:17, tier:"T25", city:"Austin", state:"TX",  median_lsat:172,p25_lsat:166,p75_lsat:173,median_gpa:3.89,p25_gpa:3.75,p75_gpa:3.96, tuition:60000, pct_grant:65, pct_half:36, pct_full:14, med_grant:22000, p25_grant:0,     p75_grant:50000, class_size:373,  yield:0.40, seats_pct:0.06, accept_rate:0.163,  wl_rate:0.10 },
-  { name:"Washington University Law",          usNews:14, tier:"T25", city:"St. Louis", state:"MO",  median_lsat:175,p25_lsat:165,p75_lsat:176,median_gpa:3.96,p25_gpa:3.58,p75_gpa:4.00, tuition:79800, pct_grant:82, pct_half:60, pct_full:30, med_grant:52000, p25_grant:22000, p75_grant:77000, class_size:261,  yield:0.28, seats_pct:0.07, accept_rate:0.1896, wl_rate:0.09 },
-  { name:"Notre Dame Law School",              usNews:19, tier:"T25", city:"Notre Dame", state:"IN",  median_lsat:170,p25_lsat:164,p75_lsat:170,median_gpa:3.89,p25_gpa:3.73,p75_gpa:3.92, tuition:70000, pct_grant:76, pct_half:46, pct_full:20, med_grant:35000, p25_grant:8000,  p75_grant:62000, class_size:186,  yield:0.30, seats_pct:0.10, accept_rate:0.158,  wl_rate:0.11 },
-  { name:"Emory University School of Law",     usNews:22, tier:"T25", city:"Atlanta", state:"GA",  median_lsat:166,p25_lsat:162,p75_lsat:167,median_gpa:3.82,p25_gpa:3.68,p75_gpa:3.87, tuition:75200, pct_grant:80, pct_half:54, pct_full:24, med_grant:42000, p25_grant:14000, p75_grant:70000, class_size:391,  yield:0.30, seats_pct:0.05, accept_rate:0.215,  wl_rate:0.11 },
-  { name:"USC Gould School of Law",            usNews:18, tier:"T25", city:"Los Angeles", state:"CA",  median_lsat:169,p25_lsat:165,p75_lsat:170,median_gpa:3.91,p25_gpa:3.73,p75_gpa:3.97, tuition:72000, pct_grant:68, pct_half:38, pct_full:15, med_grant:28000, p25_grant:5000,  p75_grant:58000, class_size:227,  yield:0.26, seats_pct:0.07, accept_rate:0.112,  wl_rate:0.09 },
-  { name:"UC Irvine School of Law",            usNews:27, tier:"T25", city:"Irvine", state:"CA",  median_lsat:169,p25_lsat:166,p75_lsat:170,median_gpa:3.80,p25_gpa:3.59,p75_gpa:3.90, tuition:53000, pct_grant:70, pct_half:40, pct_full:16, med_grant:26000, p25_grant:5000,  p75_grant:55000, class_size:189,  yield:0.34, seats_pct:0.08, accept_rate:0.149,  wl_rate:0.10 },
-
-  // ─── T50 ──────────────────────────────────────────────────────────────────
-  { name:"University of Florida (Levin)",      usNews:24, tier:"T50", city:"Gainesville", state:"FL",  median_lsat:169,p25_lsat:164,p75_lsat:170,median_gpa:3.91,p25_gpa:3.67,p75_gpa:3.96, tuition:36148, pct_grant:72, pct_half:44, pct_full:18, med_grant:24000, p25_grant:0,     p75_grant:50000, class_size:229,  yield:0.36, seats_pct:0.09, accept_rate:0.165,  wl_rate:0.09 },
-  { name:"George Mason (Scalia) Law",          usNews:31, tier:"T50", city:"Arlington", state:"VA",  median_lsat:169,p25_lsat:162,p75_lsat:171,median_gpa:3.93,p25_gpa:3.55,p75_gpa:3.98, tuition:42000, pct_grant:98, pct_half:60, pct_full:25, med_grant:30000, p25_grant:8000,  p75_grant:42000, class_size:159,  yield:0.36, seats_pct:0.12, accept_rate:0.159,  wl_rate:0.10 },
-  { name:"University of North Carolina Law",   usNews:27, tier:"T50", city:"Chapel Hill", state:"NC",  median_lsat:169,p25_lsat:165,p75_lsat:171,median_gpa:3.90,p25_gpa:3.69,p75_gpa:3.97, tuition:43000, pct_grant:65, pct_half:36, pct_full:14, med_grant:18000, p25_grant:0,     p75_grant:40000, class_size:249,  yield:0.39, seats_pct:0.08, accept_rate:0.130,  wl_rate:0.10 },
-  { name:"George Washington Law",              usNews:26, tier:"T50", city:"Washington", state:"DC",  median_lsat:168,p25_lsat:163,p75_lsat:170,median_gpa:3.86,p25_gpa:3.60,p75_gpa:3.93, tuition:77526, pct_grant:60, pct_half:30, pct_full:11, med_grant:20000, p25_grant:0,     p75_grant:45000, class_size:612,  yield:0.32, seats_pct:0.05, accept_rate:0.230,  wl_rate:0.10 },
-  { name:"Boston University School of Law",    usNews:25, tier:"T50", city:"Boston", state:"MA",  median_lsat:170,p25_lsat:164,p75_lsat:171,median_gpa:3.88,p25_gpa:3.71,p75_gpa:3.93, tuition:72000, pct_grant:74, pct_half:46, pct_full:19, med_grant:32000, p25_grant:8000,  p75_grant:60000, class_size:239,  yield:0.28, seats_pct:0.10, accept_rate:0.240,  wl_rate:0.10 },
-  { name:"Ohio State (Moritz) Law",            usNews:28, tier:"T50", city:"Columbus", state:"OH",  median_lsat:168,p25_lsat:163,p75_lsat:169,median_gpa:3.91,p25_gpa:3.64,p75_gpa:3.97, tuition:50902, pct_grant:70, pct_half:42, pct_full:17, med_grant:20000, p25_grant:0,     p75_grant:45000, class_size:159,  yield:0.28, seats_pct:0.12, accept_rate:0.294,  wl_rate:0.10 },
-  { name:"University of Alabama Law",          usNews:31, tier:"T50", city:"Tuscaloosa", state:"AL",  median_lsat:167,p25_lsat:161,p75_lsat:168,median_gpa:3.97,p25_gpa:3.76,p75_gpa:4.05, tuition:28000, pct_grant:80, pct_half:54, pct_full:24, med_grant:28000, p25_grant:6000,  p75_grant:52000, class_size:140,  yield:0.31, seats_pct:0.14, accept_rate:0.266,  wl_rate:0.10 },
-  { name:"University of Georgia Law",          usNews:31, tier:"T50", city:"Athens", state:"GA",  median_lsat:168,p25_lsat:163,p75_lsat:170,median_gpa:3.94,p25_gpa:3.74,p75_gpa:4.00, tuition:36000, pct_grant:68, pct_half:38, pct_full:15, med_grant:18000, p25_grant:0,     p75_grant:40000, class_size:202,  yield:0.40, seats_pct:0.10, accept_rate:0.120,  wl_rate:0.09 },
-  { name:"SMU Dedman School of Law",           usNews:43, tier:"T50", city:"Dallas", state:"TX",  median_lsat:167,p25_lsat:163,p75_lsat:169,median_gpa:3.82,p25_gpa:3.58,p75_gpa:3.93, tuition:67000, pct_grant:78, pct_half:50, pct_full:22, med_grant:30000, p25_grant:8000,  p75_grant:55000, class_size:207,  yield:0.28, seats_pct:0.11, accept_rate:0.205,  wl_rate:0.10 },
-  { name:"Washington and Lee Law",             usNews:28, tier:"T50", city:"Lexington", state:"VA",  median_lsat:167,p25_lsat:163,p75_lsat:170,median_gpa:3.91,p25_gpa:3.71,p75_gpa:3.98, tuition:68000, pct_grant:80, pct_half:54, pct_full:24, med_grant:35000, p25_grant:10000, p75_grant:60000, class_size:118,  yield:0.33, seats_pct:0.15, accept_rate:0.200,  wl_rate:0.09 },
-  { name:"Wake Forest Law",                    usNews:42, tier:"T50", city:"Winston-Salem", state:"NC",  median_lsat:166,p25_lsat:163,p75_lsat:168,median_gpa:3.79,p25_gpa:3.60,p75_gpa:3.90, tuition:60000, pct_grant:76, pct_half:48, pct_full:20, med_grant:28000, p25_grant:6000,  p75_grant:52000, class_size:204,  yield:0.28, seats_pct:0.12, accept_rate:0.246,  wl_rate:0.10 },
-  { name:"University of Wisconsin Law",        usNews:38, tier:"T50", city:"Madison", state:"WI",  median_lsat:167,p25_lsat:162,p75_lsat:170,median_gpa:3.85,p25_gpa:3.63,p75_gpa:3.96, tuition:42000, pct_grant:65, pct_half:36, pct_full:14, med_grant:16000, p25_grant:0,     p75_grant:36000, class_size:188,  yield:0.40, seats_pct:0.10, accept_rate:0.155,  wl_rate:0.09 },
-  { name:"University of Illinois Law",         usNews:38, tier:"T50", city:"Champaign", state:"IL",  median_lsat:166,p25_lsat:162,p75_lsat:170,median_gpa:3.82,p25_gpa:3.61,p75_gpa:3.95, tuition:52000, pct_grant:72, pct_half:44, pct_full:18, med_grant:22000, p25_grant:4000,  p75_grant:48000, class_size:143,  yield:0.30, seats_pct:0.12, accept_rate:0.220,  wl_rate:0.10 },
-  { name:"Fordham University School of Law",   usNews:38, tier:"T50", city:"New York", state:"NY",  median_lsat:168,p25_lsat:166,p75_lsat:170,median_gpa:3.79,p25_gpa:3.64,p75_gpa:3.88, tuition:79248, pct_grant:72, pct_half:44, pct_full:18, med_grant:30000, p25_grant:8000,  p75_grant:56000, class_size:447,  yield:0.31, seats_pct:0.05, accept_rate:0.162,  wl_rate:0.10 },
-  { name:"University of Utah (SJ Quinney)",    usNews:38, tier:"T50", city:"Salt Lake City", state:"UT",  median_lsat:166,p25_lsat:162,p75_lsat:170,median_gpa:3.83,p25_gpa:3.60,p75_gpa:3.96, tuition:32000, pct_grant:70, pct_half:42, pct_full:17, med_grant:18000, p25_grant:0,     p75_grant:38000, class_size:115,  yield:0.38, seats_pct:0.15, accept_rate:0.215,  wl_rate:0.09 },
-  { name:"UC Davis School of Law",             usNews:50, tier:"T50", city:"Davis", state:"CA",  median_lsat:165,p25_lsat:160,p75_lsat:167,median_gpa:3.70,p25_gpa:3.49,p75_gpa:3.87, tuition:50000, pct_grant:62, pct_half:34, pct_full:13, med_grant:18000, p25_grant:0,     p75_grant:40000, class_size:209,  yield:0.33, seats_pct:0.10, accept_rate:0.160,  wl_rate:0.10 },
-  { name:"University of Washington Law",       usNews:50, tier:"T50", city:"Seattle", state:"WA",  median_lsat:165,p25_lsat:162,p75_lsat:167,median_gpa:3.76,p25_gpa:3.60,p75_gpa:3.86, tuition:40000, pct_grant:64, pct_half:36, pct_full:14, med_grant:16000, p25_grant:0,     p75_grant:36000, class_size:207,  yield:0.31, seats_pct:0.10, accept_rate:0.196,  wl_rate:0.10 },
-  { name:"University of Minnesota Law",        usNews:21, tier:"T50", city:"Minneapolis", state:"MN",  median_lsat:171,p25_lsat:166,p75_lsat:173,median_gpa:3.88,p25_gpa:3.61,p75_gpa:3.95, tuition:55000, pct_grant:68, pct_half:40, pct_full:16, med_grant:22000, p25_grant:0,     p75_grant:48000, class_size:228,  yield:0.30, seats_pct:0.09, accept_rate:0.220,  wl_rate:0.10 },
-  { name:"University of Colorado Law",         usNews:43, tier:"T50", city:"Boulder", state:"CO",  median_lsat:164,p25_lsat:161,p75_lsat:167,median_gpa:3.81,p25_gpa:3.61,p75_gpa:3.91, tuition:40000, pct_grant:65, pct_half:36, pct_full:14, med_grant:16000, p25_grant:0,     p75_grant:36000, class_size:199,  yield:0.32, seats_pct:0.10, accept_rate:0.270,  wl_rate:0.10 },
-  { name:"Tulane University Law",              usNews:50, tier:"T50", city:"New Orleans", state:"LA",  median_lsat:164,p25_lsat:160,p75_lsat:167,median_gpa:3.74,p25_gpa:3.50,p75_gpa:3.91, tuition:60000, pct_grant:78, pct_half:50, pct_full:22, med_grant:32000, p25_grant:8000,  p75_grant:58000, class_size:241,  yield:0.29, seats_pct:0.07, accept_rate:0.280,  wl_rate:0.10 },
-  { name:"William & Mary Law School",          usNews:38, tier:"T50", city:"Williamsburg", state:"VA",  median_lsat:166,p25_lsat:161,p75_lsat:167,median_gpa:3.82,p25_gpa:3.53,p75_gpa:3.94, tuition:48000, pct_grant:70, pct_half:42, pct_full:17, med_grant:20000, p25_grant:2000,  p75_grant:42000, class_size:184,  yield:0.38, seats_pct:0.12, accept_rate:0.220,  wl_rate:0.10 },
-  { name:"Brigham Young (Clark) Law",          usNews:38, tier:"T50", city:"Provo", state:"UT",  median_lsat:166,p25_lsat:162,p75_lsat:168,median_gpa:3.89,p25_gpa:3.71,p75_gpa:3.98, tuition:16000, pct_grant:55, pct_half:28, pct_full:10, med_grant:10000, p25_grant:0,     p75_grant:22000, class_size:128,  yield:0.48, seats_pct:0.18, accept_rate:0.280,  wl_rate:0.09 },
-  { name:"Indiana University (Maurer) Law",    usNews:28, tier:"T50", city:"Bloomington", state:"IN",  median_lsat:161,p25_lsat:157,p75_lsat:164,median_gpa:3.77,p25_gpa:3.54,p75_gpa:3.92, tuition:42000, pct_grant:72, pct_half:44, pct_full:18, med_grant:20000, p25_grant:2000,  p75_grant:42000, class_size:170,  yield:0.30, seats_pct:0.13, accept_rate:0.290,  wl_rate:0.10 },
-  { name:"University of Iowa Law",             usNews:28, tier:"T50", city:"Iowa City", state:"IA",  median_lsat:162,p25_lsat:158,p75_lsat:165,median_gpa:3.74,p25_gpa:3.52,p75_gpa:3.90, tuition:30000, pct_grant:65, pct_half:36, pct_full:14, med_grant:16000, p25_grant:0,     p75_grant:34000, class_size:136,  yield:0.32, seats_pct:0.13, accept_rate:0.280,  wl_rate:0.10 },
-
-  // ─── T100 ─────────────────────────────────────────────────────────────────
-  { name:"Arizona State (O'Connor) Law",       usNews:27, tier:"T100", city:"Tempe", state:"AZ", median_lsat:165,p25_lsat:161,p75_lsat:168,median_gpa:3.91,p25_gpa:3.62,p75_gpa:4.00, tuition:42000, pct_grant:68, pct_half:40, pct_full:16, med_grant:18000, p25_grant:0,     p75_grant:38000, class_size:251,  yield:0.28, seats_pct:0.10, accept_rate:0.310,  wl_rate:0.09 },
-  { name:"Pepperdine Caruso Law",              usNews:47, tier:"T100", city:"Malibu", state:"CA", median_lsat:164,p25_lsat:161,p75_lsat:167,median_gpa:3.85,p25_gpa:3.62,p75_gpa:3.93, tuition:67000, pct_grant:78, pct_half:50, pct_full:22, med_grant:30000, p25_grant:8000,  p75_grant:55000, class_size:230,  yield:0.24, seats_pct:0.08, accept_rate:0.234,  wl_rate:0.10 },
-  { name:"Florida State University Law",       usNews:48, tier:"T100", city:"Tallahassee", state:"FL", median_lsat:165,p25_lsat:161,p75_lsat:167,median_gpa:3.91,p25_gpa:3.69,p75_gpa:3.97, tuition:32000, pct_grant:68, pct_half:40, pct_full:16, med_grant:16000, p25_grant:0,     p75_grant:35000, class_size:153,  yield:0.35, seats_pct:0.12, accept_rate:0.160,  wl_rate:0.09 },
-  { name:"Cardozo School of Law",              usNews:53, tier:"T100", city:"New York", state:"NY", median_lsat:165,p25_lsat:162,p75_lsat:167,median_gpa:3.78,p25_gpa:3.56,p75_gpa:3.87, tuition:67000, pct_grant:75, pct_half:44, pct_full:18, med_grant:28000, p25_grant:8000,  p75_grant:55000, class_size:326,  yield:0.25, seats_pct:0.12, accept_rate:0.296,  wl_rate:0.11 },
-  { name:"St. John's University Law",          usNews:63, tier:"T100", city:"Queens", state:"NY", median_lsat:164,p25_lsat:156,p75_lsat:166,median_gpa:3.81,p25_gpa:3.44,p75_gpa:3.91, tuition:62000, pct_grant:78, pct_half:48, pct_full:20, med_grant:28000, p25_grant:8000,  p75_grant:54000, class_size:241,  yield:0.24, seats_pct:0.10, accept_rate:0.2305, wl_rate:0.12 },
-  { name:"University of Arizona Law",          usNews:47, tier:"T100", city:"Tucson", state:"AZ", median_lsat:164,p25_lsat:159,p75_lsat:167,median_gpa:3.78,p25_gpa:3.52,p75_gpa:3.92, tuition:34000, pct_grant:68, pct_half:40, pct_full:16, med_grant:16000, p25_grant:0,     p75_grant:36000, class_size:145,  yield:0.38, seats_pct:0.13, accept_rate:0.230,  wl_rate:0.10 },
-  { name:"University of Richmond Law",         usNews:50, tier:"T100", city:"Richmond", state:"VA", median_lsat:163,p25_lsat:159,p75_lsat:166,median_gpa:3.76,p25_gpa:3.53,p75_gpa:3.89, tuition:52000, pct_grant:80, pct_half:54, pct_full:22, med_grant:26000, p25_grant:8000,  p75_grant:50000, class_size:139,  yield:0.28, seats_pct:0.14, accept_rate:0.250,  wl_rate:0.10 },
-  { name:"Temple Beasley School of Law",       usNews:55, tier:"T100", city:"Philadelphia", state:"PA", median_lsat:161,p25_lsat:157,p75_lsat:164,median_gpa:3.67,p25_gpa:3.40,p75_gpa:3.84, tuition:42000, pct_grant:70, pct_half:42, pct_full:17, med_grant:18000, p25_grant:2000,  p75_grant:38000, class_size:259,  yield:0.28, seats_pct:0.08, accept_rate:0.340,  wl_rate:0.10 },
-  { name:"Seton Hall Law School",              usNews:71, tier:"T100", city:"Newark", state:"NJ", median_lsat:161,p25_lsat:158,p75_lsat:164,median_gpa:3.71,p25_gpa:3.51,p75_gpa:3.86, tuition:60000, pct_grant:76, pct_half:46, pct_full:18, med_grant:26000, p25_grant:6000,  p75_grant:52000, class_size:302,  yield:0.24, seats_pct:0.04, accept_rate:0.343,  wl_rate:0.11 },
-  { name:"Loyola Chicago School of Law",       usNews:79, tier:"T100", city:"Chicago", state:"IL", median_lsat:161,p25_lsat:159,p75_lsat:163,median_gpa:3.70,p25_gpa:3.55,p75_gpa:3.83, tuition:57000, pct_grant:78, pct_half:48, pct_full:20, med_grant:28000, p25_grant:8000,  p75_grant:55000, class_size:296,  yield:0.26, seats_pct:0.31, accept_rate:0.282,  wl_rate:0.11 },
-  { name:"Brooklyn Law School",                usNews:117,tier:"T100", city:"Brooklyn", state:"NY", median_lsat:161,p25_lsat:158,p75_lsat:163,median_gpa:3.59,p25_gpa:3.37,p75_gpa:3.75, tuition:65000, pct_grant:80, pct_half:50, pct_full:22, med_grant:32000, p25_grant:8000,  p75_grant:58000, class_size:414,  yield:0.20, seats_pct:0.15, accept_rate:0.543,  wl_rate:0.10 },
-  { name:"University of Connecticut Law",      usNews:63, tier:"T100", city:"Hartford", state:"CT", median_lsat:161,p25_lsat:157,p75_lsat:164,median_gpa:3.73,p25_gpa:3.52,p75_gpa:3.89, tuition:36000, pct_grant:65, pct_half:36, pct_full:14, med_grant:14000, p25_grant:0,     p75_grant:30000, class_size:133,  yield:0.35, seats_pct:0.12, accept_rate:0.190,  wl_rate:0.10 },
-  { name:"University of Maryland (Carey) Law", usNews:50, tier:"T100", city:"Baltimore", state:"MD", median_lsat:162,p25_lsat:158,p75_lsat:165,median_gpa:3.73,p25_gpa:3.54,p75_gpa:3.90, tuition:38000, pct_grant:65, pct_half:36, pct_full:14, med_grant:14000, p25_grant:0,     p75_grant:30000, class_size:213,  yield:0.32, seats_pct:0.10, accept_rate:0.250,  wl_rate:0.10 },
-  { name:"University of Houston Law",          usNews:55, tier:"T100", city:"Houston", state:"TX", median_lsat:163,p25_lsat:159,p75_lsat:165,median_gpa:3.74,p25_gpa:3.52,p75_gpa:3.92, tuition:36000, pct_grant:64, pct_half:35, pct_full:13, med_grant:16000, p25_grant:0,     p75_grant:34000, class_size:239,  yield:0.38, seats_pct:0.10, accept_rate:0.168,  wl_rate:0.10 },
-  { name:"Villanova University Law",           usNews:63, tier:"T100", city:"Villanova", state:"PA", median_lsat:161,p25_lsat:157,p75_lsat:163,median_gpa:3.70,p25_gpa:3.49,p75_gpa:3.85, tuition:56000, pct_grant:74, pct_half:46, pct_full:19, med_grant:24000, p25_grant:4000,  p75_grant:46000, class_size:201,  yield:0.27, seats_pct:0.10, accept_rate:0.310,  wl_rate:0.10 },
-  { name:"University of Miami Law",            usNews:82, tier:"T100", city:"Coral Gables", state:"FL", median_lsat:163,p25_lsat:159,p75_lsat:165,median_gpa:3.76,p25_gpa:3.52,p75_gpa:3.90, tuition:60000, pct_grant:72, pct_half:44, pct_full:18, med_grant:24000, p25_grant:4000,  p75_grant:46000, class_size:354,  yield:0.29, seats_pct:0.08, accept_rate:0.290,  wl_rate:0.10 },
-  { name:"Loyola (LA) Law School",             usNews:71, tier:"T100", city:"Los Angeles", state:"CA", median_lsat:163,p25_lsat:160,p75_lsat:165,median_gpa:3.74,p25_gpa:3.52,p75_gpa:3.89, tuition:58000, pct_grant:74, pct_half:46, pct_full:19, med_grant:26000, p25_grant:6000,  p75_grant:50000, class_size:338,  yield:0.28, seats_pct:0.08, accept_rate:0.306,  wl_rate:0.10 },
-  { name:"University of Kentucky Law",         usNews:55, tier:"T100", city:"Lexington", state:"KY", median_lsat:161,p25_lsat:156,p75_lsat:164,median_gpa:3.71,p25_gpa:3.47,p75_gpa:3.86, tuition:26000, pct_grant:65, pct_half:36, pct_full:14, med_grant:14000, p25_grant:0,     p75_grant:30000, class_size:133,  yield:0.36, seats_pct:0.14, accept_rate:0.300,  wl_rate:0.10 },
-  { name:"Case Western Reserve Law",           usNews:76, tier:"T100", city:"Cleveland", state:"OH", median_lsat:161,p25_lsat:157,p75_lsat:164,median_gpa:3.70,p25_gpa:3.46,p75_gpa:3.87, tuition:58000, pct_grant:80, pct_half:52, pct_full:22, med_grant:30000, p25_grant:8000,  p75_grant:55000, class_size:154,  yield:0.26, seats_pct:0.12, accept_rate:0.350,  wl_rate:0.10 },
-  { name:"Northeastern University Law",        usNews:63, tier:"T100", city:"Boston", state:"MA", median_lsat:161,p25_lsat:157,p75_lsat:163,median_gpa:3.70,p25_gpa:3.48,p75_gpa:3.86, tuition:60000, pct_grant:72, pct_half:44, pct_full:18, med_grant:24000, p25_grant:4000,  p75_grant:46000, class_size:181,  yield:0.27, seats_pct:0.12, accept_rate:0.310,  wl_rate:0.10 },
-  { name:"University of Denver (Sturm) Law",   usNews:76, tier:"T100", city:"Denver", state:"CO", median_lsat:161,p25_lsat:157,p75_lsat:164,median_gpa:3.72,p25_gpa:3.48,p75_gpa:3.88, tuition:57000, pct_grant:76, pct_half:48, pct_full:20, med_grant:26000, p25_grant:6000,  p75_grant:50000, class_size:202,  yield:0.27, seats_pct:0.10, accept_rate:0.340,  wl_rate:0.10 },
-  { name:"Florida International University Law",usNews:68,tier:"T100", city:"Miami", state:"FL", median_lsat:160,p25_lsat:157,p75_lsat:163,median_gpa:3.72,p25_gpa:3.48,p75_gpa:3.88, tuition:24000, pct_grant:62, pct_half:34, pct_full:13, med_grant:12000, p25_grant:0,     p75_grant:26000, class_size:162,  yield:0.34, seats_pct:0.14, accept_rate:0.215,  wl_rate:0.10 },
-  { name:"University of San Diego Law",        usNews:83, tier:"T100", city:"San Diego", state:"CA", median_lsat:163,p25_lsat:159,p75_lsat:165,median_gpa:3.72,p25_gpa:3.50,p75_gpa:3.87, tuition:60000, pct_grant:76, pct_half:48, pct_full:20, med_grant:26000, p25_grant:6000,  p75_grant:50000, class_size:222,  yield:0.26, seats_pct:0.09, accept_rate:0.280,  wl_rate:0.10 },
-  { name:"Penn State (Dickinson) Law",         usNews:76, tier:"T100", city:"University Park", state:"PA", median_lsat:160,p25_lsat:156,p75_lsat:163,median_gpa:3.68,p25_gpa:3.44,p75_gpa:3.85, tuition:50000, pct_grant:74, pct_half:46, pct_full:19, med_grant:22000, p25_grant:4000,  p75_grant:44000, class_size:161,  yield:0.27, seats_pct:0.12, accept_rate:0.350,  wl_rate:0.10 },
-  { name:"Rutgers Law School",                 usNews:76, tier:"T100", city:"Newark", state:"NJ", median_lsat:160,p25_lsat:156,p75_lsat:163,median_gpa:3.67,p25_gpa:3.44,p75_gpa:3.84, tuition:34000, pct_grant:62, pct_half:34, pct_full:13, med_grant:12000, p25_grant:0,     p75_grant:26000, class_size:278,  yield:0.30, seats_pct:0.10, accept_rate:0.320,  wl_rate:0.10 },
-  { name:"University of Tennessee Law",        usNews:63, tier:"T100", city:"Knoxville", state:"TN", median_lsat:161,p25_lsat:157,p75_lsat:165,median_gpa:3.72,p25_gpa:3.49,p75_gpa:3.87, tuition:26000, pct_grant:65, pct_half:36, pct_full:14, med_grant:14000, p25_grant:0,     p75_grant:30000, class_size:128,  yield:0.34, seats_pct:0.14, accept_rate:0.310,  wl_rate:0.10 },
-  { name:"UC Hastings (College of the Law)",   usNews:68, tier:"T100", city:"San Francisco", state:"CA", median_lsat:161,p25_lsat:157,p75_lsat:164,median_gpa:3.69,p25_gpa:3.46,p75_gpa:3.86, tuition:47000, pct_grant:62, pct_half:34, pct_full:13, med_grant:16000, p25_grant:0,     p75_grant:34000, class_size:291,  yield:0.28, seats_pct:0.10, accept_rate:0.310,  wl_rate:0.10 },
-  { name:"University of Pittsburgh Law",       usNews:76, tier:"T100", city:"Pittsburgh", state:"PA", median_lsat:160,p25_lsat:157,p75_lsat:163,median_gpa:3.70,p25_gpa:3.48,p75_gpa:3.85, tuition:46000, pct_grant:70, pct_half:42, pct_full:17, med_grant:18000, p25_grant:2000,  p75_grant:38000, class_size:152,  yield:0.28, seats_pct:0.12, accept_rate:0.340,  wl_rate:0.10 },
-  { name:"Lewis & Clark Law School",           usNews:93, tier:"T100", city:"Portland", state:"OR", median_lsat:161,p25_lsat:157,p75_lsat:163,median_gpa:3.63,p25_gpa:3.40,p75_gpa:3.82, tuition:52000, pct_grant:78, pct_half:50, pct_full:22, med_grant:26000, p25_grant:6000,  p75_grant:50000, class_size:189,  yield:0.24, seats_pct:0.10, accept_rate:0.360,  wl_rate:0.10 },
-  { name:"University of Missouri Law",         usNews:76, tier:"T100", city:"Columbia", state:"MO", median_lsat:160,p25_lsat:156,p75_lsat:164,median_gpa:3.67,p25_gpa:3.42,p75_gpa:3.84, tuition:24000, pct_grant:65, pct_half:36, pct_full:14, med_grant:12000, p25_grant:0,     p75_grant:26000, class_size:135,  yield:0.35, seats_pct:0.14, accept_rate:0.340,  wl_rate:0.10 },
-  { name:"University of Nebraska Law",         usNews:76, tier:"T100", city:"Lincoln", state:"NE", median_lsat:160,p25_lsat:156,p75_lsat:163,median_gpa:3.69,p25_gpa:3.44,p75_gpa:3.85, tuition:22000, pct_grant:65, pct_half:36, pct_full:14, med_grant:10000, p25_grant:0,     p75_grant:22000, class_size:116,  yield:0.38, seats_pct:0.15, accept_rate:0.340,  wl_rate:0.10 },
-  { name:"University of Oklahoma Law",         usNews:76, tier:"T100", city:"Norman", state:"OK", median_lsat:160,p25_lsat:156,p75_lsat:163,median_gpa:3.68,p25_gpa:3.44,p75_gpa:3.84, tuition:22000, pct_grant:65, pct_half:36, pct_full:14, med_grant:12000, p25_grant:0,     p75_grant:26000, class_size:134,  yield:0.36, seats_pct:0.14, accept_rate:0.360,  wl_rate:0.10 },
-  { name:"Drexel (Kline) Law School",          usNews:93, tier:"T100", city:"Philadelphia", state:"PA", median_lsat:160,p25_lsat:156,p75_lsat:163,median_gpa:3.65,p25_gpa:3.42,p75_gpa:3.82, tuition:52000, pct_grant:76, pct_half:48, pct_full:20, med_grant:24000, p25_grant:4000,  p75_grant:46000, class_size:178,  yield:0.25, seats_pct:0.10, accept_rate:0.360,  wl_rate:0.10 },
-  { name:"UNLV (Boyd) Law School",             usNews:76, tier:"T100", city:"Las Vegas", state:"NV", median_lsat:160,p25_lsat:156,p75_lsat:163,median_gpa:3.68,p25_gpa:3.44,p75_gpa:3.85, tuition:24000, pct_grant:62, pct_half:34, pct_full:13, med_grant:10000, p25_grant:0,     p75_grant:22000, class_size:128,  yield:0.35, seats_pct:0.14, accept_rate:0.310,  wl_rate:0.10 },
-  { name:"University of South Carolina Law",   usNews:76, tier:"T100", city:"Columbia", state:"SC", median_lsat:161,p25_lsat:157,p75_lsat:163,median_gpa:3.68,p25_gpa:3.46,p75_gpa:3.85, tuition:26000, pct_grant:65, pct_half:36, pct_full:14, med_grant:12000, p25_grant:0,     p75_grant:26000, class_size:177,  yield:0.37, seats_pct:0.14, accept_rate:0.340,  wl_rate:0.10 },
-  { name:"Catholic University Law (CUA)",      usNews:93, tier:"T100", city:"Washington", state:"DC", median_lsat:159,p25_lsat:155,p75_lsat:163,median_gpa:3.63,p25_gpa:3.38,p75_gpa:3.81, tuition:56000, pct_grant:74, pct_half:46, pct_full:19, med_grant:22000, p25_grant:4000,  p75_grant:44000, class_size:165,  yield:0.26, seats_pct:0.12, accept_rate:0.390,  wl_rate:0.10 },
-  { name:"Wayne State University Law",         usNews:93, tier:"T100", city:"Detroit", state:"MI", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.59,p25_gpa:3.34,p75_gpa:3.78, tuition:30000, pct_grant:65, pct_half:36, pct_full:14, med_grant:12000, p25_grant:0,     p75_grant:26000, class_size:133,  yield:0.30, seats_pct:0.14, accept_rate:0.380,  wl_rate:0.10 },
-  { name:"University of Oregon Law",           usNews:93, tier:"T100", city:"Eugene", state:"OR", median_lsat:160,p25_lsat:155,p75_lsat:163,median_gpa:3.64,p25_gpa:3.40,p75_gpa:3.82, tuition:38000, pct_grant:65, pct_half:36, pct_full:14, med_grant:14000, p25_grant:0,     p75_grant:30000, class_size:172,  yield:0.30, seats_pct:0.12, accept_rate:0.370,  wl_rate:0.10 },
-  { name:"Howard University Law",              usNews:68, tier:"T100", city:"Washington", state:"DC", median_lsat:156,p25_lsat:152,p75_lsat:160,median_gpa:3.63,p25_gpa:3.38,p75_gpa:3.82, tuition:40000, pct_grant:70, pct_half:42, pct_full:17, med_grant:18000, p25_grant:2000,  p75_grant:38000, class_size:145,  yield:0.34, seats_pct:0.15, accept_rate:0.290,  wl_rate:0.10 },
-  { name:"Baylor Law School",                  usNews:55, tier:"T100", city:"Waco", state:"TX", median_lsat:163,p25_lsat:159,p75_lsat:166,median_gpa:3.74,p25_gpa:3.51,p75_gpa:3.91, tuition:58000, pct_grant:74, pct_half:46, pct_full:19, med_grant:22000, p25_grant:4000,  p75_grant:44000, class_size:143,  yield:0.34, seats_pct:0.13, accept_rate:0.300,  wl_rate:0.10 },
-  { name:"Marquette University Law",           usNews:83, tier:"T100", city:"Milwaukee", state:"WI", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.63,p25_gpa:3.38,p75_gpa:3.81, tuition:52000, pct_grant:76, pct_half:48, pct_full:20, med_grant:22000, p25_grant:4000,  p75_grant:44000, class_size:155,  yield:0.28, seats_pct:0.12, accept_rate:0.420,  wl_rate:0.10 },
-  { name:"Gonzaga University Law",             usNews:93, tier:"T100", city:"Spokane", state:"WA", median_lsat:157,p25_lsat:153,p75_lsat:161,median_gpa:3.62,p25_gpa:3.38,p75_gpa:3.80, tuition:48000, pct_grant:76, pct_half:48, pct_full:20, med_grant:20000, p25_grant:4000,  p75_grant:40000, class_size:130,  yield:0.30, seats_pct:0.13, accept_rate:0.450,  wl_rate:0.10 },
-  { name:"Hofstra (Deane) Law School",         usNews:93, tier:"T100", city:"Hempstead", state:"NY", median_lsat:159,p25_lsat:155,p75_lsat:162,median_gpa:3.65,p25_gpa:3.40,p75_gpa:3.83, tuition:62000, pct_grant:76, pct_half:48, pct_full:20, med_grant:24000, p25_grant:4000,  p75_grant:46000, class_size:182,  yield:0.26, seats_pct:0.12, accept_rate:0.380,  wl_rate:0.10 },
-  { name:"University of Louisville Law",       usNews:93, tier:"T100", city:"Louisville", state:"KY", median_lsat:157,p25_lsat:153,p75_lsat:161,median_gpa:3.63,p25_gpa:3.38,p75_gpa:3.82, tuition:25000, pct_grant:68, pct_half:40, pct_full:16, med_grant:14000, p25_grant:0,     p75_grant:28000, class_size:120,  yield:0.36, seats_pct:0.14, accept_rate:0.420,  wl_rate:0.10 },
-  { name:"West Virginia University Law",       usNews:93, tier:"T100", city:"Morgantown", state:"WV", median_lsat:157,p25_lsat:153,p75_lsat:161,median_gpa:3.64,p25_gpa:3.40,p75_gpa:3.82, tuition:22000, pct_grant:66, pct_half:38, pct_full:15, med_grant:12000, p25_grant:0,     p75_grant:24000, class_size:115,  yield:0.36, seats_pct:0.15, accept_rate:0.440,  wl_rate:0.10 },
-  { name:"Suffolk University Law",             usNews:93, tier:"T100", city:"Boston", state:"MA", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.59,p25_gpa:3.34,p75_gpa:3.78, tuition:56000, pct_grant:72, pct_half:44, pct_full:18, med_grant:20000, p25_grant:2000,  p75_grant:40000, class_size:210,  yield:0.25, seats_pct:0.11, accept_rate:0.450,  wl_rate:0.10 },
-  { name:"St. Louis University Law",           usNews:93, tier:"T100", city:"St. Louis", state:"MO", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.64,p25_gpa:3.40,p75_gpa:3.83, tuition:50000, pct_grant:76, pct_half:48, pct_full:20, med_grant:22000, p25_grant:4000,  p75_grant:42000, class_size:150,  yield:0.28, seats_pct:0.12, accept_rate:0.400,  wl_rate:0.10 },
-  { name:"University of Mississippi Law",      usNews:80, tier:"T100", city:"Oxford", state:"MS", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.68,p25_gpa:3.44,p75_gpa:3.85, tuition:20000, pct_grant:65, pct_half:36, pct_full:14, med_grant:10000, p25_grant:0,     p75_grant:22000, class_size:145,  yield:0.38, seats_pct:0.15, accept_rate:0.420,  wl_rate:0.10 },
-  { name:"University of Kansas Law",           usNews:80, tier:"T100", city:"Lawrence", state:"KS", median_lsat:159,p25_lsat:155,p75_lsat:162,median_gpa:3.66,p25_gpa:3.42,p75_gpa:3.84, tuition:24000, pct_grant:65, pct_half:36, pct_full:14, med_grant:12000, p25_grant:0,     p75_grant:24000, class_size:138,  yield:0.36, seats_pct:0.14, accept_rate:0.380,  wl_rate:0.10 },
-  { name:"Mercer University Law",              usNews:100,tier:"T100", city:"Macon", state:"GA", median_lsat:157,p25_lsat:153,p75_lsat:161,median_gpa:3.62,p25_gpa:3.38,p75_gpa:3.80, tuition:46000, pct_grant:76, pct_half:48, pct_full:20, med_grant:20000, p25_grant:4000,  p75_grant:38000, class_size:145,  yield:0.30, seats_pct:0.14, accept_rate:0.430,  wl_rate:0.10 },
-  { name:"Quinnipiac University Law",          usNews:100,tier:"T100", city:"North Haven", state:"CT", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.62,p25_gpa:3.38,p75_gpa:3.80, tuition:58000, pct_grant:74, pct_half:46, pct_full:19, med_grant:22000, p25_grant:4000,  p75_grant:42000, class_size:168,  yield:0.27, seats_pct:0.12, accept_rate:0.410,  wl_rate:0.10 },
-  { name:"Duquesne University Law",            usNews:100,tier:"T100", city:"Pittsburgh", state:"PA", median_lsat:157,p25_lsat:153,p75_lsat:161,median_gpa:3.62,p25_gpa:3.37,p75_gpa:3.81, tuition:48000, pct_grant:76, pct_half:48, pct_full:20, med_grant:20000, p25_grant:4000,  p75_grant:38000, class_size:130,  yield:0.29, seats_pct:0.13, accept_rate:0.420,  wl_rate:0.10 },
-  { name:"Oklahoma City University Law",       usNews:100,tier:"T100", city:"Oklahoma City", state:"OK", median_lsat:156,p25_lsat:152,p75_lsat:160,median_gpa:3.58,p25_gpa:3.33,p75_gpa:3.78, tuition:38000, pct_grant:74, pct_half:46, pct_full:19, med_grant:18000, p25_grant:2000,  p75_grant:36000, class_size:110,  yield:0.30, seats_pct:0.15, accept_rate:0.470,  wl_rate:0.10 },
-  { name:"Tulsa University Law",               usNews:100,tier:"T100", city:"Tulsa", state:"OK", median_lsat:158,p25_lsat:154,p75_lsat:162,median_gpa:3.62,p25_gpa:3.38,p75_gpa:3.80, tuition:40000, pct_grant:78, pct_half:50, pct_full:22, med_grant:20000, p25_grant:4000,  p75_grant:40000, class_size:120,  yield:0.32, seats_pct:0.14, accept_rate:0.400,  wl_rate:0.10 },
-];
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
 
 
 const TIER_META = {
@@ -266,17 +157,21 @@ export default function App() {
     if (!results.length) return;
     setAiLoading(true);
     setAiInsight("");
-    const td = appDate ? `Application date: ${appDate} (${timing.label})` : "No date provided";
-    const sum = results.map(r =>
-      `${r.name}: Accept ${r.accept}% / WL ${r.waitlist}% / Deny ${r.deny}% | Schol: ${r.scholLabel} ~${r.scholLikelihood}% / $${r.estMin.toLocaleString()}-$${r.estMax.toLocaleString()} | Seats: ~${r.seats}`
-    ).join("\n");
     try {
       const resp = await fetch("/api/strategy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          system: "You are a top law school admissions counselor. Give 3-4 sentences of sharp, actionable strategy. Reference specific schools by name. Prioritize timing urgency if relevant. No filler.",
-          messages: [{ role: "user", content: `GPA:${gpa} LSAT:${lsat} URM:${urm} Softs:${softs}\n${td}\n2025-26 cycle: apps up 23% nationally. March 2026 - many T14s near class capacity.\n\n${sum}\n\nGive strategic insight covering admission positioning, waitlist strategy, and scholarship leverage.` }]
+          gpa: gpaNum,
+          lsat: lsatNum,
+          urm,
+          softs,
+          timingLabel: appDate ? timing.label : null,
+          results: results.map(r => ({
+            name: r.name, accept: r.accept, waitlist: r.waitlist, deny: r.deny,
+            scholLabel: r.scholLabel, scholLikelihood: r.scholLikelihood,
+            estMin: r.estMin, estMax: r.estMax, seats: r.seats
+          }))
         })
       });
       if (!resp.ok) throw new Error("api");
@@ -314,25 +209,23 @@ export default function App() {
     } else {
       pool = pool.slice(0, 40);
     }
-    const schoolList = pool.map(s =>
-      `${s.name}|${s.tier}|${s.city},${s.state}|acc${Math.round(s.accept_rate*100)}%|L${s.median_lsat}|G${s.median_gpa}|$${Math.round(s.tuition/1000)}k|grant$${Math.round(s.med_grant/1000)}k`
-    ).join("\n");
-    const filterNote = (stateF || tuitionF) ?
-      `\nIMPORTANT FILTERS: ${stateF ? `Strongly prefer schools in ${stateF}.` : ""} ${tuitionF ? `Strongly prefer tuition under $${tuitionF.toLocaleString()}.` : ""} Prioritize schools matching these filters but include 1-2 non-matching schools per bucket if they are exceptionally strong fits.` : "";
     try {
       const resp = await fetch("/api/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          system: "You are an expert law school admissions counselor. You MUST respond with ONLY valid JSON. No markdown fences, no text before or after the JSON object. Keep all strings concise (under 25 words each).",
-          messages: [{ role: "user", content: `Student: GPA ${gpaNum.toFixed(2)}, LSAT ${lsatNum}, URM: ${urm}, Softs: ${softs}, Timing: ${timingKey}.${filterNote}
-
-Schools (name|tier|location|accept rate|med LSAT|med GPA|tuition|med grant):
-${schoolList}
-
-Return ONLY this JSON (no markdown, no backticks):
-{"summary":"2-3 sentence overview","reach":[{"name":"exact school name","reason":"why reach","tip":"tactical tip"}],"target":[{"name":"exact school name","reason":"why target","tip":"tactical tip"}],"safety":[{"name":"exact school name","reason":"why safety","tip":"tactical tip"}]}
-Pick 5 schools per bucket (15 total). Use exact school names from the list above.` }]
+          gpa: gpaNum,
+          lsat: lsatNum,
+          urm,
+          softs,
+          timingKey,
+          stateFilter: stateF || null,
+          tuitionMax: tuitionF || null,
+          schools: pool.map(s => ({
+            name: s.name, tier: s.tier, city: s.city, state: s.state,
+            accept_rate: s.accept_rate, median_lsat: s.median_lsat,
+            median_gpa: s.median_gpa, tuition: s.tuition, med_grant: s.med_grant
+          }))
         })
       });
       if (!resp.ok) {
@@ -350,6 +243,28 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
       }
       const clean = text.replace(/```json\s?|```/g, "").trim();
       const parsed = JSON.parse(clean);
+      // Validate shape
+      if (!parsed.reach || !parsed.target || !parsed.safety) {
+        setRecs({ error: "AI returned unexpected format. Please try again." });
+        setRecsLoading(false);
+        return;
+      }
+      // Fuzzy-match school names against SCHOOLS array
+      const fuzzyMatch = (name) => {
+        const exact = SCHOOLS.find(s => s.name === name);
+        if (exact) return name;
+        const lower = name.toLowerCase();
+        const close = SCHOOLS.find(s => s.name.toLowerCase() === lower);
+        if (close) return close.name;
+        const partial = SCHOOLS.find(s => s.name.toLowerCase().includes(lower) || lower.includes(s.name.toLowerCase()));
+        if (partial) return partial.name;
+        return name; // keep original if no match found
+      };
+      for (const bucket of ['reach', 'target', 'safety']) {
+        if (Array.isArray(parsed[bucket])) {
+          parsed[bucket] = parsed[bucket].map(s => ({ ...s, name: fuzzyMatch(s.name) }));
+        }
+      }
       setRecs(parsed);
     } catch(e) {
       console.error("Recommendations error:", e);
@@ -478,7 +393,7 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
                 The scholarship estimator<br/><em>for serious applicants</em>
               </h1>
               <p style={{fontSize:16,color:"#666",lineHeight:1.6,maxWidth:480,margin:"0 auto"}}>
-                Accept, waitlist, and deny probabilities — plus timing-adjusted scholarship estimates — across 35 ABA-accredited schools.
+                Accept, waitlist, and deny probabilities — plus timing-adjusted scholarship estimates — across {SCHOOLS.length} ABA-accredited schools.
               </p>
             </div>
 
@@ -586,7 +501,7 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
                     onChange={e=>{setSearch(e.target.value);setShowDrop(true);}}
                     onFocus={()=>setShowDrop(true)}
                     onBlur={()=>setTimeout(()=>setShowDrop(false),160)}
-                    placeholder="Search or browse 100 schools..."
+                    placeholder={`Search or browse ${SCHOOLS.length} schools...`}
                     style={{width:"100%",padding:"11px 14px",border:"1.5px solid #e0dbd2",borderRadius:10,fontSize:14,fontWeight:400,color:"#1a1a1a",background:"#faf9f7",transition:"border-color 0.2s",boxSizing:"border-box"}}
                     onFocusCapture={e=>{e.target.style.borderColor="#1a1a1a";}}
                     onBlurCapture={e=>{e.target.style.borderColor="#e0dbd2";}}
@@ -812,6 +727,20 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
                                 </div>
                               ))}
                             </div>
+                            {(r.biglaw_fc_pct != null || r.bar_passage_rate != null || r.employment_rate != null) && (
+                              <div className="grid-3col" style={{marginBottom:12}}>
+                                {[
+                                  {label:"BigLaw + FC",val:r.biglaw_fc_pct != null ? `${r.biglaw_fc_pct}%` : "—",color:"#2a7ae0"},
+                                  {label:"Bar Passage",val:r.bar_passage_rate != null ? `${r.bar_passage_rate}%` : "—",color:"#2d9e5f"},
+                                  {label:"Employed 10mo",val:r.employment_rate != null ? `${r.employment_rate}%` : "—",color:"#1a1a1a"}
+                                ].map(({label,val,color})=>(
+                                  <div key={label} style={{background:"#f6f9ff",borderRadius:8,padding:"8px 10px",border:"1px solid #e8edf5"}}>
+                                    <div style={{fontSize:10,color:"#bbb",marginBottom:2}}>{label}</div>
+                                    <div style={{fontWeight:700,color,fontSize:13}}>{val}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                             {appDate && (
                               <div style={{background:"#faf9f7",borderRadius:9,padding:"10px 12px",border:"1px solid #f0ede8"}}>
                                 <div style={{fontSize:10,fontWeight:700,color:"#bbb",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Timing · {timing.label}</div>
@@ -855,7 +784,7 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
             {recsLoading && (
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"80px 0",gap:16}}>
                 <div style={{width:40,height:40,border:"3px solid #e0dbd2",borderTopColor:"#e05c2a",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-                <p style={{fontSize:14,color:"#999"}}>Analyzing your profile across 35 schools...</p>
+                <p style={{fontSize:14,color:"#999"}}>{`Analyzing your profile across ${SCHOOLS.length} schools...`}</p>
               </div>
             )}
 
@@ -1060,7 +989,7 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
                     <table style={{width:"100%",minWidth:650,borderCollapse:"collapse",fontSize:13}}>
                       <thead>
                         <tr style={{borderBottom:"1px solid #f0ede8",background:"#faf9f7"}}>
-                          {["School","Accept","Waitlist","Deny","Scholarship","Est. Aid/yr","Seats"].map(h=>(
+                          {["School","Accept","Waitlist","Deny","Scholarship","Est. Aid/yr","BigLaw+FC","Seats"].map(h=>(
                             <th key={h} style={{padding:"12px 14px",textAlign:h==="School"?"left":"center",color:"#999",fontWeight:600,fontSize:11,textTransform:"uppercase",letterSpacing:"0.08em",whiteSpace:"nowrap"}}>{h}</th>
                           ))}
                         </tr>
@@ -1079,6 +1008,7 @@ Pick 5 schools per bucket (15 total). Use exact school names from the list above
                               <td style={{padding:"14px",textAlign:"center"}}><span style={{fontWeight:700,color:"#cc3b2a"}}>{r.deny}%</span></td>
                               <td style={{padding:"14px",textAlign:"center"}}><span style={{color:r.scholColor,fontWeight:600}}>{r.scholEmoji} {r.scholLabel}</span></td>
                               <td style={{padding:"14px",textAlign:"center",color:r.estMax>0?"#666":"#ccc",fontSize:12}}>{r.estMax>0?`$${r.estMin.toLocaleString()}-$${r.estMax.toLocaleString()}`:"—"}</td>
+                              <td style={{padding:"14px",textAlign:"center"}}><span style={{color:"#2a7ae0",fontWeight:700}}>{r.biglaw_fc_pct != null ? `${r.biglaw_fc_pct}%` : "—"}</span></td>
                               <td style={{padding:"14px",textAlign:"center"}}><span style={{color:sc,fontWeight:700}}>{r.seats===0?"~0":r.seats}</span></td>
                             </tr>
                           );
